@@ -279,7 +279,7 @@ Warning: No improvement after 5 rounds
 name: Optimize
 on: [push]
 jobs:
-  refine:
+  auto-optimize:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -288,7 +288,7 @@ jobs:
       - name: Upload history
         uses: actions/upload-artifact@v2
         with:
-          name: refine-history
+          name: auto-optimize-history
           path: optimization_history.json
 ```
 
