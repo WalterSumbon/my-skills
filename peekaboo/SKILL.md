@@ -112,3 +112,4 @@ tccutil reset Accessibility com.apple.Terminal
 
 - https://github.com/steipete/peekaboo
 - `npx -y @steipete/peekaboo --help`
+- `npx -y @steipete/peekaboo learn` - 完整 AI agent 使用指南
