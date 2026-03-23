@@ -1,8 +1,8 @@
-# refine 框架自身验收指标
+# auto-optimize 框架自身验收指标
 
 ## 优化目标
 
-refine 是一个通用的量化驱动优化框架，可用于优化任何可量化的目标。
+auto-optimize 是一个通用的量化驱动优化框架，可用于优化任何可量化的目标。
 
 ## 指标定义
 
@@ -29,7 +29,7 @@ fi
 echo "I1=$SIZE"
 
 # I2: 必需文件存在
-REQUIRED="SKILL.md EVAL.md refine_history.json visualize.js"
+REQUIRED="SKILL.md EVAL.md optimization_history.json visualize.js"
 COUNT=0
 for file in $REQUIRED; do
   if [ -f "$file" ]; then

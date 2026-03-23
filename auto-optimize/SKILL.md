@@ -1,10 +1,10 @@
 ---
-name: refine
+name: auto-optimize
 description: 量化驱动优化框架 - 通过定义指标、自动测试、迭代优化任何可量化的目标（代码、文档、配置、模型等）。
 user-invocable: true
 ---
 
-# refine - 量化驱动优化框架
+# auto-optimize - 量化驱动优化框架
 
 通过定义量化指标 (EVAL.md)，自动测试、迭代优化任何目标。
 
@@ -13,10 +13,10 @@ user-invocable: true
 ```bash
 # 1. 创建 EVAL.md 定义优化目标和验收标准
 # 2. 运行优化
-npx -y refine optimize --target ./my-project
+npx -y auto-optimize --target ./my-project
 
 # 3. 查看优化历史
-npx -y refine visualize --target ./my-project --open
+npx -y auto-optimize visualize --target ./my-project --open
 ```
 
 ## 核心概念
@@ -35,7 +35,7 @@ npx -y refine visualize --target ./my-project --open
 │  达标? ─┬─→ 完成                                            │
 │         └─→ 分析差距 → 生成优化方案 → 应用修改                 │
 │              ↓                                              │
-│         记录到 refine_history.json → git commit              │
+│         记录到 optimization_history.json → git commit              │
 │              ↓                                              │
 │         返回重新测试                                         │
 └─────────────────────────────────────────────────────────────┘
@@ -98,7 +98,7 @@ cat > EVAL.md << 'EOF'
 | I2 | 成功率 | ./test_commands.sh | 100% | 是 |
 EOF
 
-npx -y refine optimize
+npx -y auto-optimize
 ```
 
 ### 场景 2: 优化代码性能
@@ -115,7 +115,7 @@ cat > EVAL.md << 'EOF'
 | I3 | 代码行数 | wc -l src/*.js | < 500 | 否 |
 EOF
 
-npx -y refine optimize --max-rounds 20
+npx -y auto-optimize --max-rounds 20
 ```
 
 ### 场景 3: 优化配置文件
@@ -131,7 +131,7 @@ cat > EVAL.md << 'EOF'
 | I2 | 镜像大小 | docker images | < 100MB | 否 |
 EOF
 
-npx -y refine optimize
+npx -y auto-optimize
 ```
 
 ### 场景 4: 优化 AI 模型提示词
@@ -148,10 +148,10 @@ cat > EVAL.md << 'EOF'
 | I3 | 延迟 | time ./inference.sh | < 2s | 否 |
 EOF
 
-npx -y refine optimize
+npx -y auto-optimize
 ```
 
-## refine_history.json 格式
+## optimization_history.json 格式
 
 自动生成的优化记录：
 
@@ -194,7 +194,7 @@ npx -y refine optimize
 ### optimize - 执行优化
 
 ```bash
-npx -y refine optimize [options]
+npx -y auto-optimize [options]
 
 Options:
   --target <path>      优化目标路径 (默认: .)
@@ -207,7 +207,7 @@ Options:
 ### visualize - 可视化历史
 
 ```bash
-npx -y refine visualize [options]
+npx -y auto-optimize visualize [options]
 
 Options:
   --target <path>      目标路径 (默认: .)
@@ -219,7 +219,7 @@ Options:
 ### init - 初始化 EVAL.md
 
 ```bash
-npx -y refine init --target ./my-project --template skill|code|config
+npx -y auto-optimize init --target ./my-project --template skill|code|config
 ```
 
 ## 优化策略
@@ -241,7 +241,7 @@ refine 内置多种优化策略，根据 EVAL.md 自动选择或手动指定：
 Error: EVAL.md not found in ./my-project
 
 解决:
-npx -y refine init --target ./my-project
+npx -y auto-optimize init --target ./my-project
 ```
 
 ### 测试脚本失败
@@ -284,16 +284,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run refine
-        run: npx -y refine optimize --max-rounds 5
+        run: npx -y auto-optimize --max-rounds 5
       - name: Upload history
         uses: actions/upload-artifact@v2
         with:
           name: refine-history
-          path: refine_history.json
+          path: optimization_history.json
 ```
 
 ## 资源
 
-- https://github.com/anthropics/refine
-- `npx -y refine --help`
-- `npx -y refine learn`
+- https://github.com/anthropics/auto-optimize
+- `npx -y auto-optimize --help`
+- `npx -y auto-optimize learn`

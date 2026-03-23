@@ -7,6 +7,7 @@ Personal Claude Code skill collection - refined and tested for real-world usage.
 | Skill | Description | Status |
 |-------|-------------|--------|
 | [peekaboo](./peekaboo/) | macOS screen capture & GUI automation | ✅ Tested with 3.0.0-beta3 |
+| [auto-optimize](./auto-optimize/) | Quantitative-driven optimization framework | ✅ 100% metrics passed |
 
 ## Philosophy
 

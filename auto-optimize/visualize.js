@@ -2,7 +2,7 @@
 
 /**
  * refine-skill 优化历史可视化脚本
- * Usage: node visualize.js [--skill ./path] [--open]
+ * Usage: auto-optimize visualize [--skill ./path] [--open]
  */
 
 const fs = require('fs');
@@ -10,7 +10,7 @@ const path = require('path');
 const http = require('http');
 
 function loadHistory(skillPath) {
-  const historyPath = path.join(skillPath, 'refine_history.json');
+  const historyPath = path.join(skillPath, 'optimization_history.json');
   if (!fs.existsSync(historyPath)) {
     console.error(`Error: refine_history.json not found in ${skillPath}`);
     process.exit(1);
@@ -181,7 +181,7 @@ const args = process.argv.slice(2);
 // Help
 if (args.includes('--help') || args.includes('-h')) {
   console.log(`
-refine visualize - 优化历史可视化工具
+auto-optimize visualize - 优化历史可视化工具
 
 Usage: node visualize.js [options]
 

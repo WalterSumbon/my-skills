@@ -1,5 +1,5 @@
 {
-  "target_name": "refine",
+  "target_name": "auto-optimize",
   "target_type": "framework",
   "description": "Generic optimization framework based on quantifiable metrics",
   "start_time": "2026-03-23T10:00:00Z",
