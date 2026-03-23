@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * refine-skill 优化历史可视化脚本
+ * auto-optimize 优化历史可视化脚本
  * Usage: auto-optimize visualize [--skill ./path] [--open]
  */
 
@@ -12,7 +12,7 @@ const http = require('http');
 function loadHistory(skillPath) {
   const historyPath = path.join(skillPath, 'optimization_history.json');
   if (!fs.existsSync(historyPath)) {
-    console.error(`Error: refine_history.json not found in ${skillPath}`);
+    console.error(`Error: optimization_history.json not found in ${skillPath}`);
     process.exit(1);
   }
   return JSON.parse(fs.readFileSync(historyPath, 'utf8'));
@@ -206,7 +206,7 @@ try {
   const html = generateHTML(history);
   
   // 保存 HTML 文件
-  const outputPath = path.join(skillPath, 'refine_history.html');
+  const outputPath = path.join(skillPath, 'optimization_history.html');
   fs.writeFileSync(outputPath, html);
   console.log(`📊 Generated: ${outputPath}`);
   

@@ -18,7 +18,7 @@ auto-optimize 是一个通用的量化驱动优化框架，可用于优化任何
 #!/bin/bash
 set -e
 
-echo "Testing refine framework..."
+echo "Testing auto-optimize framework..."
 
 # I1: 文档大小
 SIZE=$(wc -c < SKILL.md)

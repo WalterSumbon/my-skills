@@ -23,7 +23,7 @@ npx -y auto-optimize visualize --target ./my-project --open
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    refine 优化循环                           │
+│                 auto-optimize 优化循环                        │
 ├─────────────────────────────────────────────────────────────┤
 │  EVAL.md                                                    │
 │    ├─ 指标定义 (可量化的目标)                                 │
@@ -62,7 +62,7 @@ npx -y auto-optimize visualize --target ./my-project --open
 
 ```bash
 #!/bin/bash
-# test.sh - refine 会调用此脚本收集指标
+# test.sh - auto-optimize 会调用此脚本收集指标
 # 输出格式: 指标ID=数值
 
 echo "I1=$(wc -c < main.js)"
@@ -224,7 +224,7 @@ npx -y auto-optimize init --target ./my-project --template skill|code|config
 
 ## 优化策略
 
-refine 内置多种优化策略，根据 EVAL.md 自动选择或手动指定：
+auto-optimize 内置多种优化策略，根据 EVAL.md 自动选择或手动指定：
 
 | 策略 | 适用场景 | 说明 |
 |------|----------|------|
@@ -275,7 +275,7 @@ Warning: No improvement after 5 rounds
 ## 与 CI/CD 集成
 
 ```yaml
-# .github/workflows/refine.yml
+# .github/workflows/auto-optimize.yml
 name: Optimize
 on: [push]
 jobs:
@@ -283,7 +283,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Run refine
+      - name: Run auto-optimize
         run: npx -y auto-optimize --max-rounds 5
       - name: Upload history
         uses: actions/upload-artifact@v2
