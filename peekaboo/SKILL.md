@@ -512,6 +512,170 @@ npx -y @steipete/peekaboo space switch --to 2
 
 ---
 
+## 🔧 故障排查（深度分析）
+
+### 问题 1: `see` 命令超时或失败
+
+**症状**:
+```
+error: The operation couldn't be completed. Operation timed out
+error: INTERNAL_SWIFT_ERROR
+```
+
+**根本原因分析**:
+
+1. **元素检测复杂度高** - `see` 命令包含三个阶段：
+   - Capture Phase: 截图 (通常 < 200ms)
+   - Element Detection: 分析 UI 元素 (可能 100ms - 10s+)
+   - Annotation Generation: 生成标注图 (与元素数量成正比)
+
+2. **UI 复杂度影响** - 测试数据显示：
+   - iTerm2 (513 元素): 成功，~0.5s
+   - 计算器 (小窗口): 失败，`PeekabooBridgeErrorEnvelope error 1`
+   - Chrome (复杂页面): 可能超时
+
+3. **Bridge 通信问题** - 远程 Bridge 可能响应慢
+
+**解决方案（按优先级）**:
+
+#### 方案 A: 使用 `image` + `click` 代替 `see`
+
+```bash
+# 第 1 步: 截图（永远不会超时）
+npx -y @steipete/peekaboo image --path /tmp/ui.png
+
+# 第 2 步: 手动观察截图确定坐标
+# 第 3 步: 直接点击坐标
+npx -y @steipete/peekaboo click --coords "100,200"
+```
+
+**适用**: 简单、确定的 UI 操作
+
+#### 方案 B: 调整超时时间
+
+```bash
+# 默认 20s，延长到 30s
+npx -y @steipete/peekaboo see --timeout-seconds 30 --annotate
+```
+
+**适用**: 复杂 UI 但元素检测能完成的情况
+
+#### 方案 C: 使用 `--no-remote` 本地执行
+
+```bash
+# 绕过 Bridge，直接执行（需要终端有权限）
+npx -y @steipete/peekaboo see --no-remote --annotate
+```
+
+**适用**: Bridge 通信问题
+
+#### 方案 D: 简化 UI 后重试
+
+```bash
+# 关闭多余窗口，减少元素数量
+# 切换到更简单的视图
+# 然后重试 see
+```
+
+**适用**: 元素过多导致的性能问题
+
+#### 方案 E: 分步捕获（推荐用于复杂场景）
+
+```bash
+# 第 1 步: 只截图，不分析
+npx -y @steipete/peekaboo image --app "Safari" --path /tmp/safari.png
+
+# 第 2 步: 使用 analyze 分析已保存的图片
+npx -y @steipete/peekaboo analyze --image-path /tmp/safari.png --question "描述这个界面上的可点击元素"
+
+# 第 3 步: 根据分析结果点击
+npx -y @steipete/peekaboo click --coords "估计的坐标"
+```
+
+---
+
+### 问题 2: `see` 标注图不显示元素标记
+
+**症状**: 生成的 `*_annotated.png` 看起来和普通截图一样
+
+**原因**: 
+- 标注生成需要额外处理时间
+- 某些 UI 元素坐标计算可能失败（如日志中 `windowOrigin: (-1.0, -17944.0)` 显示异常）
+
+**解决**:
+```bash
+# 不使用 --annotate，只获取 JSON 输出
+npx -y @steipete/peekaboo see --json --path /tmp/ui.png
+
+# 解析 JSON 中的元素坐标，手动计算位置
+# JSON 中的 rect 格式: {x, y, width, height}
+```
+
+---
+
+### 问题 3: 特定应用窗口捕获失败
+
+**症状**: `error 1` 或窗口无法找到
+
+**已知的 problematic 应用**:
+- 计算器 (小窗口，非标准 UI)
+- 某些系统弹窗
+
+**解决**:
+```bash
+# 使用 frontmost 模式代替指定应用
+npx -y @steipete/peekaboo see --mode frontmost
+
+# 或先切换到应用，再捕获前台
+npx -y @steipete/peekaboo app switch --to "App"
+npx -y @steipete/peekaboo see
+```
+
+---
+
+### 问题 4: Bridge 连接问题
+
+**诊断**:
+```bash
+# 检查 Bridge 状态
+npx -y @steipete/peekaboo bridge status
+
+# 检查 socket 文件
+ls -la ~/Library/Application\ Support/Peekaboo/bridge.sock
+```
+
+**解决**:
+```bash
+# 重启 Bridge（杀死所有 peekaboo 进程）
+pkill -f peekaboo
+
+# 或使用 --no-remote 绕过 Bridge
+npx -y @steipete/peekaboo see --no-remote
+```
+
+---
+
+### 调试技巧
+
+**开启详细日志**:
+```bash
+npx -y @steipete/peekaboo see --log-level trace --json 2>&1 | tee /tmp/debug.log
+```
+
+**关键日志字段**:
+- `capture_phase`: 截图耗时
+- `element_detection`: 元素检测耗时
+- `generate_annotations`: 标注生成耗时
+
+**性能基准**:
+| 阶段 | 正常耗时 | 警告阈值 |
+|------|----------|----------|
+| capture_phase | < 200ms | > 1s |
+| element_detection | < 1s | > 5s |
+| generate_annotations | < 500ms | > 2s |
+
+---
+
 ## CLI vs MCP 参数对照
 
 | 功能 | MCP JSON 参数 | CLI 参数 | 示例 |
