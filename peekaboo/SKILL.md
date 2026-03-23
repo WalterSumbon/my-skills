@@ -9,6 +9,24 @@ user-invocable: true
 > **版本**: 3.0.0-beta3  
 > **系统要求**: macOS 15.0+
 
+## ⚠️ 关键问题速查
+
+| 问题 | 原因 | 快速解决 |
+|------|------|----------|
+| `see` 命令超时 | 元素数量 > 500 或 Bridge 延迟 | 使用 `image` + `click --coords` 代替 |
+| `see` 标注图错误 | 坐标计算异常 | 查看 `--json` 输出而非标注图 |
+| 计算器/小窗口失败 | 非标准 AX 层级 | 使用 `--mode frontmost` |
+| Bridge 错误 | Socket 通信问题 | 添加 `--no-remote` |
+
+**推荐**: 生产环境优先使用 `image` + 坐标点击，而非 `see`。
+
+---
+
+# Peekaboo - macOS 屏幕捕获与 GUI 自动化
+
+> **版本**: 3.0.0-beta3  
+> **系统要求**: macOS 15.0+
+
 ## 核心原则
 
 **直接执行** - 使用提供的工具直接操作，不要只描述动作。  
@@ -513,6 +531,14 @@ npx -y @steipete/peekaboo space switch --to 2
 ---
 
 ## 🔧 故障排查（深度分析）
+
+> 📚 **详细分析**: 查看 [ROOT_CAUSE_ANALYSIS.md](./ROOT_CAUSE_ANALYSIS.md) 获取完整的技术调研报告，包括：
+> - macOS AX API 的架构限制
+> - 官方已知问题追踪
+> - 6 种解决方案的详细对比
+> - 生产环境推荐配置
+
+### 问题 1: `see` 命令超时或失败
 
 ### 问题 1: `see` 命令超时或失败
 
