@@ -21,7 +21,7 @@ Each skill in this repository:
 
 ```bash
 # Clone to your skills directory
-git clone git@github.com:WalterSumbon/my-skills-v2.git ~/.agents/skills/my-skills
+git clone git@github.com:WalterSumbon/my-skills.git ~/.agents/skills/my-skills
 ```
 
 ## Contributing
