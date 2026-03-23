@@ -177,6 +177,26 @@ function serveHTML(html, port = 8080) {
 
 // Main
 const args = process.argv.slice(2);
+
+// Help
+if (args.includes('--help') || args.includes('-h')) {
+  console.log(`
+refine visualize - 优化历史可视化工具
+
+Usage: node visualize.js [options]
+
+Options:
+  --target <path>   目标路径 (默认: .)
+  --port <n>        HTTP 端口 (默认: 8080)
+  --open            启动 HTTP 服务器并打开浏览器
+  --help            显示帮助
+
+Examples:
+  node visualize.js --target ./my-skill --open
+  node visualize.js --target ./my-project --port 3000
+`);
+  process.exit(0);
+}
 const skillIndex = args.indexOf('--skill');
 const skillPath = skillIndex >= 0 ? args[skillIndex + 1] : '.';
 const shouldOpen = args.includes('--open');

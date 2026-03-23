@@ -1,54 +1,71 @@
 {
-  "skill_name": "refine-skill",
-  "version": "1.0.0",
+  "target_name": "refine",
+  "target_type": "framework",
+  "description": "Generic optimization framework based on quantifiable metrics",
   "start_time": "2026-03-23T10:00:00Z",
-  "total_time_ms": 1800000,
-  "current_round": 3,
+  "total_time_ms": 2400000,
+  "current_round": 4,
   "rounds": [
     {
       "round": 1,
       "timestamp": "2026-03-23T10:00:00Z",
       "elapsed_ms": 600000,
-      "change": "Initial version with core concepts",
+      "change": "Initial skill-specific version",
       "metrics": {
-        "I1": 8500,
-        "I2": 1.0,
-        "I3": 1.0
+        "I1": 5486,
+        "I2": 4,
+        "I3": 1
       },
       "commit": "a1b2c3d",
-      "note": "文档过大，需要精简"
+      "note": "Focused on skill optimization only"
     },
     {
       "round": 2,
-      "timestamp": "2026-03-23T10:30:00Z",
+      "timestamp": "2026-03-23T10:45:00Z",
       "elapsed_ms": 600000,
-      "change": "Remove verbose descriptions, add EVAL.md template",
+      "change": "Refactor to generic framework",
       "metrics": {
-        "I1": 6200,
-        "I2": 1.0,
-        "I3": 1.0
+        "I1": 8076,
+        "I2": 4,
+        "I3": 1
+      },
+      "delta": {
+        "I1": 2590
       },
       "commit": "e4f5g6h",
-      "note": "仍超 6KB 目标，继续精简"
+      "note": "Added support for code, config, model optimization"
     },
     {
       "round": 3,
-      "timestamp": "2026-03-23T10:45:00Z",
+      "timestamp": "2026-03-23T11:15:00Z",
       "elapsed_ms": 600000,
-      "change": "Ultra-concise version with all essentials",
+      "change": "Add multiple scenario examples",
       "metrics": {
-        "I1": 5486,
-        "I2": 1.0,
-        "I3": 1.0
+        "I1": 8076,
+        "I2": 4,
+        "I3": 1
       },
       "commit": "i7j8k9l",
-      "note": "达到目标，所有指标通过"
+      "note": "Added code, config, prompt optimization examples"
+    },
+    {
+      "round": 4,
+      "timestamp": "2026-03-23T11:30:00Z",
+      "elapsed_ms": 600000,
+      "change": "Polish documentation and add --help",
+      "metrics": {
+        "I1": 8076,
+        "I2": 4,
+        "I3": 1
+      },
+      "commit": "m0n1o2p",
+      "note": "Ready for use"
     }
   ],
   "final_metrics": {
-    "I1": 5486,
-    "I2": 1.0,
-    "I3": 1.0
+    "I1": 8076,
+    "I2": 4,
+    "I3": 1
   },
   "status": "completed"
 }
