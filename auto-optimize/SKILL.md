@@ -1,332 +1,84 @@
 ---
 name: auto-optimize
-description: 量化驱动自主优化框架 - 借鉴 Karpathy autoresearch，通过定义指标让 AI 自主实验、测量、迭代改进。
+description: 迭代优化任何具有可量化指标的对象的标准流程。可用场景包括但不限于代码、提示词、文档、配置、流程、模型、交易策略等的优化。强调先定义目标和评估，再做受控迭代。
 user-invocable: true
 ---
 
-# auto-optimize - 量化驱动自主优化
+# auto-optimize
 
-> 借鉴 [Karpathy autoresearch](https://github.com/karpathy/autoresearch) 思想：让 AI 自主实验，人类去睡觉，醒来看到优化结果。
+用于“优化任何具有可量化指标的对象”的标准流程。可用场景包括但不限于代码、提示词、文档、配置、流程、模型、交易策略等的优化。强调先定义目标和评估，再做受控迭代。
 
-**版本**: 1.0.0 | **要求**: Git, 可量化的优化目标
+使用该skill下的脚本 `start_optimization.sh` 可以快速生成一个包含上述内容的模板文件，帮助你梳理和记录优化过程。
 
-## 核心思想
+开始前需要预先在文档或者对话中明确以下内容，其中一些是可选的，需要你根据具体情况判断是否每项是否必要：
+- 优化对象和范围。
+- 优化目标和成功标准。
+- 指标定义、评估方法和基线。
+- 约束条件和不可破坏属性。
+- 实验预算和停止条件。
+并将这些信息维护到 `AGENT.md` 中。
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    自主优化循环 (NEVER STOP)                      │
-├─────────────────────────────────────────────────────────────────┤
-│  1. 读取 EVAL.md / PROGRAM.md 了解目标和约束                     │
-│  2. 分析当前指标状态                                             │
-│  3. 提出优化想法 → 应用修改                                       │
-│  4. 运行测试 → 收集指标                                          │
-│  5. 记录结果 (JSON/TSV)                                          │
-│  6. 改进? ─┬─→ git commit (保留)                                 │
-│            └─→ git reset (丢弃)                                  │
-│  7. 返回步骤 2，永不停止直到人类中断                               │
-└─────────────────────────────────────────────────────────────────┘
-```
+你的优化过程应该遵循以下步骤：
+1. 创建一个专门的项目文件夹，整理相关文档、代码和评估工具。并使用git进行管理，确保每轮改动都能清晰追踪和回滚。 `AGENT.md` 和 `optimization_history.json` 等文档也应该放在这个文件夹中，但是必须被ignore掉，不要提交到git。始终维持main分支为最优的版本，所有改动都在分支上进行。
+2. 明确问题和目标，并写入到项目的 `AGENT.md` 中。
+3. 设计并验证评估方法，构建可靠的可复用的评估工具，测算评估所需的时间和资源预算。关键信息记录到 `AGENT.md` 中。
+4. 建立基线版本。
+5. 评估当前版本的指标，记录结果到 `optimization_history.json` 中。
+6. 判断是否达到停止条件或成功标准，如果是，输出当前最优方案和后续建议；如果否，继续下一步。
+7. 判断是否破坏了约束条件，如果是，放弃改动并记录原因，跳到第9步；如果否，继续下一步。
+8. 判断当前结果是否优于上一个版本，如果是，merge到main分支，并记录结果；如果否，放弃改动并记录原因。
+9. 基于当前结果和结论，选择下一轮改动的方向和内容，回到第5步。如有必要的话可以先进行充分的调研，形成明确的假设，再进行改动。
 
-**关键原则**: 
-- **固定预算**: 每个实验固定时间/资源，结果可比
-- **简单决策**: 改进就保留，否则丢弃
-- **NEVER STOP**: 一旦开始，持续运行直到手动停止
+## optimization_history.json
 
-## 快速开始
+你需要将优化过程记录到一个结构化的文件中，例如 `optimization_history.json`，每轮记录以下内容：
+- `round`: 实验轮数。
+- `git_commit`: 相关改动的git commit hash。
+- `change`: 核心改动点。
+- `evaluation`: 评估结果，包括主指标和护栏指标，还有时间和资源开销。
+- `decision`: 保留还是放弃。
+- `notes`: 其他相关信息，例如遇到的挑战、学到的经验、下一步计划等。
+除此之外，还应该在每轮结束时总结出关键经验教训，记录在 `key_learnings` 字段中。这些经验教训应该是具体的、可操作的，并且能够指导后续的优化工作。这个字段是全局的，不是每轮的，而是随着优化过程的推进不断更新和完善的。
+此外，还需要在优化过程中维护：
+- `best_round` 字段，记录当前最优版本对应的实验轮数序号。
+- `status` 字段，记录当前优化状态，例如 "not_started"、"in_progress"、"succeeded"、"aborted" 等。
 
-```bash
-# 1. 创建 EVAL.md 定义优化目标
-cat > EVAL.md << 'EOF'
-## 指标定义
-| ID | 名称 | 测试命令 | 目标 | 否决 |
-|----|------|----------|------|------|
-| I1 | 执行时间 | time ./run.sh | < 100ms | 是 |
-
-## 约束
-- 只能修改 main.py
-- 不能添加依赖
-EOF
-
-# 2. 启动自主优化（NEVER STOP 模式）
-npx -y auto-optimize run --never-stop
-
-# 3. 人类去睡觉，醒来查看结果
-cat optimization_history.json
-```
-
-## 文件规范
-
-### EVAL.md - 验收指标（人类编写）
-
-```markdown
-# 优化目标
-
-缩短代码执行时间。
-
-## 指标定义
-
-| ID | 名称 | 测试命令 | 目标值 | 一票否决 |
-|----|------|----------|--------|----------|
-| I1 | 执行时间 | time ./benchmark | < 100ms | 是 |
-| I2 | 代码行数 | wc -l main.py | < 200 | 否 |
-
-## 测试脚本
-
-```bash
-#!/bin/bash
-echo "I1=$(time ./benchmark | grep real | awk '{print $2}')"
-echo "I2=$(wc -l < main.py)"
-```
-
-## 约束条件
-
-- 只能修改 `main.py`
-- 不能添加外部依赖
-- 保持 API 兼容
-
-## 简化原则
-
-小改进 + 丑陋代码 = 不值得
-删除代码 + 同等结果 = 值得保留
-```
-
-### PROGRAM.md - Agent 指令（可选，人类编写）
-
-类似 Karpathy 的 `program.md`，告诉 Agent 如何优化：
-
-```markdown
-# PROGRAM.md
-
-## Setup
-1. 读取 EVAL.md 了解指标和约束
-2. 运行测试建立基线
-3. 创建 optimization_history.json
-
-## Experiment Loop
-
-LOOP FOREVER:
-  1. 分析当前代码和指标
-  2. 提出一个具体的优化想法
-  3. 修改代码（只能改 main.py）
-  4. 运行测试
-  5. 记录结果
-  6. 如果 I1 < 之前 → git commit
-  7. 如果 I1 >= 之前 → git reset
-
-## 优化思路
-- 先尝试缓存常用结果
-- 然后尝试减少循环嵌套
-- 最后尝试算法优化
-
-## 停止条件
-- 达到目标值 < 100ms
-- 连续 10 次无改进
-- 或被人类手动停止
-```
-
-### optimization_history.json - 优化历史（自动生成）
+初始的optimization_history.json文件可以使用start_optimization.sh脚本生成，内容为：
 
 ```json
 {
-  "target_name": "my-project",
-  "start_time": "2026-03-23T10:00:00Z",
-  "rounds": [
-    {
-      "round": 1,
-      "timestamp": "2026-03-23T10:05:00Z",
-      "elapsed_ms": 300000,
-      "metrics": {"I1": 150},
-      "status": "keep",
-      "change": "add caching",
-      "commit": "abc123"
-    },
-    {
-      "round": 2,
-      "timestamp": "2026-03-23T10:10:00Z",
-      "elapsed_ms": 300000,
-      "metrics": {"I1": 80},
-      "status": "keep",
-      "change": "optimize loop",
-      "commit": "def456"
-    }
-  ]
+  "rounds": [],
+  "status": "not_started",
+  "best_round": null,
+  "key_learnings": []
 }
-```
+``` 
 
-### results.tsv - 实验记录（可选，类似 Karpathy）
+## Use This Skill When
 
-```
-round	metric_before	metric_after	change	status	description
-1	150ms	150ms	0ms	baseline	initial
-2	150ms	120ms	-30ms	keep	add caching
-3	120ms	80ms	-40ms	keep	optimize loop
-4	80ms	85ms	+5ms	discard	try threading
-```
+- 用户明确表示想优化某个对象，例如代码、提示词、文档、配置、流程或模型使用方式。
+- 用户希望 AI 能全自动的进行多轮改动和验证，而不是只给出一次性建议。
+- 用户需要比较多个候选改动，并基于证据决定保留或放弃。
 
-## 命令行工具
+## Do Not Use This Skill When
 
-### run - 启动优化
+- 用户要的是一次性修复，而不是优化迭代。
+- 用户没有给出目标，也不允许澄清。
+- 优化结果无法验证，只能靠纯主观判断，且用户也没有给出明确比较标准。
+- 单次验证成本过高，无法支撑小步实验。
+- 用户只要求回答原理，不要求形成执行流程。
 
-```bash
-# 基本用法
-npx -y auto-optimize run --target ./my-project
+## Core Principles
 
-# NEVER STOP 模式（推荐，Karpathy 风格）
-npx -y auto-optimize run --never-stop --target ./my-project
+- 先定义成功，再提出改动。没有成功标准，就没有优化。
+- 没有基线，就没有“变好”。所有优化都必须与当前状态比较。
+- 主指标必须少。通常一个主指标，加少量护栏指标即可。
+- 护栏指标必须明确。不能为了局部收益破坏关键质量属性。
+- 单轮实验必须可归因。一次不要混入多个主要变量。
+- 优化服从约束。更快、更短、更便宜不自动等于更好。
+- 证据优先于直觉。结论来自验证，而不是“看起来更好”。
+- 连续无收益时应停止并复盘，而不是机械继续。
 
-# 分支模式（每个实验一个分支）
-npx -y auto-optimize run --branch-per-experiment --target ./my-project
+## Required Clarification
 
-# 指定最大轮次
-npx -y auto-optimize run --max-rounds 50 --target ./my-project
-```
-
-### visualize - 可视化历史
-
-```bash
-# 生成 HTML 报告
-npx -y auto-optimize visualize --target ./my-project --open
-
-# 导出 TSV
-npx -y auto-optimize visualize --target ./my-project --export tsv
-```
-
-### init - 初始化项目
-
-```bash
-# 创建 EVAL.md 和 PROGRAM.md 模板
-npx -y auto-optimize init --target ./my-project --template code
-```
-
-## 使用场景
-
-### 场景 1: 优化 Skill 文档（模仿 peekaboo 优化）
-
-```bash
-cd ~/.agents/skills/my-skill
-
-cat > EVAL.md << 'EOF'
-## 指标定义
-| ID | 名称 | 测试命令 | 目标 | 否决 |
-|----|------|----------|------|------|
-| I1 | 大小 | wc -c SKILL.md | < 5KB | 否 |
-| I2 | 成功率 | ./test.sh | 100% | 是 |
-
-## 约束
-- 只能修改 SKILL.md
-- 保留所有功能示例
-EOF
-
-npx -y auto-optimize run --never-stop
-# 人类去睡觉，醒来查看 optimization_history.json
-```
-
-### 场景 2: 优化代码性能（Karpathy 风格）
-
-```bash
-cd ./my-project
-
-cat > EVAL.md << 'EOF'
-## 指标定义
-| ID | 名称 | 测试命令 | 目标 | 否决 |
-|----|------|----------|------|------|
-| I1 | 执行时间 | time ./benchmark | < 50ms | 是 |
-| I2 | 内存 | ./memory_test | < 10MB | 否 |
-
-## 约束
-- 只能修改 main.py
-- 不能添加依赖
-- 保持向后兼容
-EOF
-
-cat > PROGRAM.md << 'EOF'
-## 优化思路
-1. 先尝试添加缓存
-2. 然后尝试减少循环
-3. 最后尝试算法优化
-EOF
-
-npx -y auto-optimize run --never-stop --branch-per-experiment
-```
-
-### 场景 3: 优化配置文件
-
-```bash
-cd ./deployment
-
-cat > EVAL.md << 'EOF'
-## 指标定义
-| ID | 名称 | 测试命令 | 目标 | 否决 |
-|----|------|----------|------|------|
-| I1 | 启动时间 | time docker up | < 5s | 是 |
-| I2 | 镜像大小 | docker images | < 100MB | 否 |
-EOF
-
-npx -y auto-optimize run --max-rounds 20
-```
-
-## 设计选择（借鉴 Karpathy）
-
-| 设计 | 说明 |
-|------|------|
-| **固定预算** | 每个实验固定时间/资源，结果可比 |
-| **单一文件修改** | Agent 只改指定文件，diff 可 review |
-| **简单保留/丢弃** | 改进 → commit，否则 → reset |
-| **TSV 记录** | 人类可读的实验记录 |
-| **分支管理** | 每个实验独立分支，清晰可追溯 |
-| **NEVER STOP** | 一旦开始，持续运行直到手动停止 |
-
-## 故障排查
-
-### EVAL.md 不存在
-```bash
-Error: EVAL.md not found
-
-解决:
-npx -y auto-optimize init --target ./my-project
-```
-
-### 测试脚本失败
-```bash
-Error: Test script exited with code 1
-
-解决:
-1. 单独运行测试命令验证
-2. 确保输出格式: ID=value
-3. 使用 --verbose 查看详情
-```
-
-### 无法决定保留/丢弃
-```bash
-Warning: Ambiguous improvement
-
-解决:
-在 EVAL.md 中明确定义优先级:
-"I1 为主要指标，I2 为次要指标"
-```
-
-## 与 Karpathy autoresearch 的对比
-
-| 特性 | Karpathy autoresearch | auto-optimize |
-|------|----------------------|---------------|
-| 适用范围 | ML 训练 (train.py) | 任何可量化目标 |
-| 时间预算 | 固定 5 分钟 | 灵活定义 |
-| 指标 | 单一 (val_bpb) | 多指标支持 |
-| 记录格式 | TSV | JSON + TSV |
-| 版本管理 | 分支 (autoresearch/mar5) | commit 或分支 |
-| 人类输入 | program.md | EVAL.md + PROGRAM.md |
-| 停止条件 | NEVER STOP | NEVER STOP 或 max-rounds |
-
-## 最佳实践
-
-1. **从简单开始**: 先定义一个主要指标，后续再加
-2. **固定预算**: 每个实验固定时间/资源，确保可比性
-3. **约束明确**: 告诉 Agent 什么能改，什么不能改
-4. **NEVER STOP**: 让 Agent 持续运行，人类异步查看结果
-5. ** mornings review**: 早上醒来查看 optimization_history.json
-
-## 资源
-
-- https://github.com/karpathy/autoresearch - 灵感来源
-- https://github.com/anthropics/auto-optimize - 本项目
-- `npx -y auto-optimize --help`
+开始优化前，先确认信息充分。缺任何关键项时，先向用户补充，不要擅自脑补。
