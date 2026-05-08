@@ -9,6 +9,7 @@ Personal Claude Code skill collection - refined and tested for real-world usage.
 | [peekaboo](./peekaboo/) | macOS screen capture & GUI automation | ✅ Tested with 3.0.0-beta3 |
 | [auto-optimize](./auto-optimize/) | Quantitative-driven optimization framework | ✅ 100% metrics passed |
 | [tmux](./tmux/) | Remote-control tmux sessions | ✅ Ready to use |
+| [skill-writer](./skill-writer/) | Best practices for creating and updating skills | ✅ Used for all skills here |
 
 ## Philosophy
 
@@ -22,7 +23,9 @@ Each skill in this repository:
 
 ```bash
 # Clone to your skills directory
-git clone git@github.com:WalterSumbon/my-skills.git ~/.agents/skills/my-skills
+git clone git@github.com:WalterSumbon/my-skills.git
+cd my-skills
+./install-skills.sh your-skills-directory
 ```
 
 ## Contributing

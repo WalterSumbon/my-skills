@@ -5,6 +5,7 @@
   "start_time": "2026-03-23T10:00:00Z",
   "total_time_ms": 4800000,
   "current_round": 5,
+  "best_round": 5,
   "rounds": [
     {
       "round": 1,

@@ -42,6 +42,7 @@ user-invocable: true
 此外，还需要在优化过程中维护：
 - `best_round` 字段，记录当前最优版本对应的实验轮数序号。
 - `status` 字段，记录当前优化状态，例如 "not_started"、"in_progress"、"succeeded"、"aborted" 等。
+- `metric_directions` 字段，记录各指标的优化方向。默认指标按越大越好处理；如果某个指标越小越好，必须显式写成 `"min"`，例如 `"latency_ms": "min"`。可视化脚本会用它判断突破轮次。
 
 初始的optimization_history.json文件可以使用start_optimization.sh脚本生成，内容为：
 
@@ -50,6 +51,7 @@ user-invocable: true
   "rounds": [],
   "status": "not_started",
   "best_round": null,
+  "metric_directions": {},
   "key_learnings": []
 }
 ``` 
