@@ -1,63 +1,96 @@
 ---
 name: skill-writer
-description: 编写skill的规范和最佳实践。Use when create or update a skill.
-user-invocable: true
+description: 编写和更新 skill 的规范、流程和最佳实践。Use when creating, reviewing, or improving a skill folder, SKILL.md, or bundled skill resources.
 ---
 
-# skill的定义
+# Skill 的定义
 
-skill的本质是一个模型可以根据description自行决定是否取用的操作手册资料包。整体遵循"渐进式披露"的原则，渐进的层次如下：
-1. skill name和description：最短，默认放到system prompt中
-2. markdown内容：更详细的内容，不会默认放到system prompt中，仅当模型调用这个skill时才会传递给模型阅读
-3. 其他资源：按需读取/使用的资源，如文本、脚本等
+Skill 是一个让 agent 在特定任务中获得稳定工作流、领域知识、工具脚本或素材的操作手册资料包。它遵循"渐进式披露"原则：
+
+1. `name` 和 `description`：默认进入上下文，用于判断是否触发 skill。
+2. `SKILL.md` 正文：仅在 skill 触发后读取，放核心流程和使用指引。
+3. 其他资源：按需读取或执行，放详细参考、脚本、模板、素材。
+
+# 创建或更新流程
+
+1. 明确这个 skill 要支持的真实用户请求，至少确认核心任务和触发场景。
+2. 判断哪些信息必须放在 `SKILL.md`，哪些应拆到资源文件。
+3. 创建或更新 skill 文件夹，文件夹名必须等于 skill name。
+4. 编写 `SKILL.md`：先写准确的 frontmatter，再写短而可执行的正文。
+5. 测试新增脚本或关键资源，确保可直接运行。
+6. 运行校验脚本；如果失败，修复后重新校验。
+7. [可选]对复杂 skill 做真实任务 forward-testing，并根据结果迭代。
 
 # 文件结构
 
-每个skill单独成一个文件夹，文件夹名称为skill的名称。目录结构如下：
+每个 skill 单独成一个文件夹：
 
 ```
 <skill-name>/
-├── SKILL.md
-├── [other directory or files]
+├── SKILL.md              # 必需
+├── scripts/              # 可选：可执行脚本
+├── references/           # 可选：详细参考资料
+└── assets/               # 可选：模板、图片、字体、样例素材
 ```
 
-其中，SKILL.md是必需的，其他文件或目录根据需要添加，并且可以在SKILL.md中进行相对路径引用。
+只创建实际需要的资源目录。其他目录仅在任务明确需要时添加。
 
-# SKILL.md规范
+# `SKILL.md` 规范
 
-SKILL.md是skill的核心文件。
+`SKILL.md` 由 YAML frontmatter 和 Markdown 正文组成。
 
-格式为包含yaml front matter和markdown内容的文件：
-- yaml front matter部分包含skill的元信息。其中name、description是必须的，其他字段根据需要添加。这2个字段的信息会放到system prompt中，供模型决定是否调用这个skill。
-  - name: skill的名称，必须与文件夹名称一致。只能包含小写字母、数字和连字符，且必须以字母开头。长度不超过20个字符。 
-  - description: skill的简要描述。需要清晰、简洁地说明skill的功能和用途，并且说明在什么场景下使用这个skill。长度不超过200个字符。
-- markdown内容部分包含skill的描述、使用说明等。这部分的内容不会直接放到system prompt中，只有当模型调用这个skill时，才会将这部分内容作为调用结果传递给模型。
+## Frontmatter
 
-# 最佳实践
+只包含 `name` 和 `description`：
 
-- skill name应该具有描述性，能够清晰地传达skill的功能和用途。
-- skill description要求：
-  - 简洁明了，能够让模型快速理解skill的功能和适用场景
-  - 至少包含2个部分:
-    1. skill的功能和用途的简要概括
-    2. 适用场景的说明，告诉模型在什么情况下应该调用这个skill
-  - 不应该包含过多的细节信息，细节信息应该放在markdown内容部分
-  - 不应该包含过于宽泛的描述，如"适用于各种场景"，而是应该具体说明适用的场景，以便模型更好地判断是否调用这个skill
-  - 不应该包含不应该使用这个skill的场景，除非这些误用场景非常核心且常见，或者编写者要求
-- markdown要求：
-  - 包含模型一定需要知道的最核心的信息，低频使用/过长的内容应该放到other directory or files中。
-  - 如果存在other directory or files，需要说明这些资源是什么，以及模型在什么情况下需要使用这些资源。
-  - 清晰的流程说明是好的
-  - 简短适当的常用示例是好的，但也不要过多
-  - 尽量用"应该做什么"替代"不要做什么"，也不需要解释为什么这样做。像一本操作手册一样。
-  - 需要模型特别关注的部分，用粗体或<IMPORTANT>...</IMPORTANT>标识出来。
-  - 适当的格式化（如标题、列表等）可以提升可读性。
-  - 越短越好。考虑精简语言，或者将低频/非核心部分内容放到other directory or files中。
-- 其他资源要求：
-  - 常见的目录命名：
-    - "examples"：存放示例文件
-    - "scripts"：存放脚本文件
-    - "references"：存放参考资料
-    - "templates"：存放模板文件
-    - "data"：存放数据文件
-  - 资源文件的命名应该具有描述性，能够清晰地传达文件的内容和用途。
+```yaml
+---
+name: skill-name
+description: 说明这个 skill 做什么，以及在什么用户请求或任务上下文中使用。
+---
+```
+
+- `name`：使用小写字母、数字和连字符；建议 64 个字符以内；必须与文件夹名一致。
+- `description`：这是触发机制。必须同时说明功能和使用场景，因为正文只有触发后才会被读取。
+
+# Description 写法
+
+好的 `description` 应该能让 agent 只靠它判断是否触发 skill：
+
+- 先说明能力：这个 skill 帮 agent 做什么。
+- 再说明场景：什么用户请求、文件类型、工作流或任务上下文应该使用它。
+- 使用具体触发词，避免 “适用于各种场景” 这类宽泛描述。
+- 只放必要细节；执行步骤放正文。
+- 只有常见且严重的误触发场景，才写不应使用的边界。
+
+## Markdown 正文
+
+正文只写 agent 执行任务时必须知道的内容：
+
+- 使用命令式表达，像操作手册一样说明步骤。
+- 保留核心流程、关键约束、资源导航和少量高价值示例。
+- 把低频、过长、变体化的内容拆到资源文件。
+- 如果存在资源文件，明确说明它们是什么，以及何时读取或执行。
+- 避免泛泛解释 skill 是什么；假设 agent 已理解基础概念。
+- 需要特别关注的要求使用粗体或 `<IMPORTANT>...</IMPORTANT>` 标识。
+
+# 资源分层判断
+
+- `SKILL.md`：放每次使用都需要的核心流程、约束和资源索引。
+- `references/`：放详细文档、领域知识、API 说明、长示例和变体规则。
+- `scripts/`：放重复、易错、需要确定性的操作。新增脚本必须实际运行测试。
+- `assets/`：放最终输出会使用的模板、图片、字体、样例素材等。
+
+避免把同一信息同时放在 `SKILL.md` 和资源文件中。详细信息一旦拆出去，就在 `SKILL.md` 中保留清晰入口。
+
+# 验证
+
+完成创建或修改后运行校验脚本：
+
+```bash
+scripts/quick_validate.py <path/to/skill-folder>
+```
+
+如果当前环境没有该脚本，说明无法运行该项验证，并用可用方式检查 frontmatter、文件结构和资源引用。
+
+新增或修改 `scripts/` 下的脚本时，必须实际执行代表性用例。复杂 skill 应使用真实任务做 forward-testing：只给测试 agent skill 路径和任务，不泄漏预期答案或修复思路。
